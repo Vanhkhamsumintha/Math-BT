@@ -538,7 +538,7 @@ $('targetLabel').textContent = Number(r.targetScore || 10);
         (winnerNames.length ? winnerNames.join(', ') : 'ບໍ່ມີຂໍ້ມູນຊື່');
     }
   }
-
+} // ສຳຄັນ: ປິດຟັງຊັນ renderRoom()
 
 
 function escHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -944,37 +944,25 @@ async function nextQuestion() {
   }
 }
 
-function keyAdd(k){const el=$('answerInput');if(el.disabled)return;el.value+=k;el.focus();}
-function keyBack(){const el=$('answerInput');if(el.disabled)return;el.value=el.value.slice(0,-1);el.focus();}
-function keyClear(){const el=$('answerInput');if(el.disabled)return;el.value='';el.focus();}
-$('answerInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    submitAnswer();
-  }
-});
-
 
 function keyAdd(k) {
-    const el = $('answerInput');
-    if (el.disabled) return;
-
-    el.value += k;
+  const el = $('answerInput');
+  if (el.disabled) return;
+  el.value += k;
 }
 
 function keyBack() {
-    const el = $('answerInput');
-    if (el.disabled) return;
-
-    el.value = el.value.slice(0, -1);
+  const el = $('answerInput');
+  if (el.disabled) return;
+  el.value = el.value.slice(0, -1);
 }
 
 function keyClear() {
-    const el = $('answerInput');
-    if (el.disabled) return;
-
-    el.value = '';
+  const el = $('answerInput');
+  if (el.disabled) return;
+  el.value = '';
 }
+
 
 </script>
 </body>
