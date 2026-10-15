@@ -225,16 +225,29 @@ window.MathJax={
        placeholder="ກົດປຸ່ມຕົວເລກດ້ານລຸ່ມ">
 
 
-   <div class="keypad">
-    <button onclick="keyAdd('7')">7</button><button onclick="keyAdd('8')">8</button><button onclick="keyAdd('9')">9</button>
-    <button onclick="keyAdd('4')">4</button><button onclick="keyAdd('5')">5</button><button onclick="keyAdd('6')">6</button>
-    <button onclick="keyAdd('1')">1</button><button onclick="keyAdd('2')">2</button><button onclick="keyAdd('3')">3</button>
-    <button onclick="keyAdd('0')">0</button><button onclick="keyAdd('.')">.</button><button onclick="keyAdd('/')">/</button>
-    <button class="wide" onclick="keyAdd('-')">− ເຄື່ອງໝາຍລົບ</button>
-    <button class="back" onclick="keyBack()">⌫</button>
-    <button class="wide" onclick="keyClear()">ລຶບຄຳຕອບ</button>
-    <button class="green" onclick="submitAnswer()">ສົ່ງຄຳຕອບ</button>
-   </div>
+
+<div class="keypad">
+  <button type="button" onclick="keyAdd('1')">1</button>
+  <button type="button" onclick="keyAdd('2')">2</button>
+  <button type="button" onclick="keyAdd('3')">3</button>
+
+  <button type="button" onclick="keyAdd('4')">4</button>
+  <button type="button" onclick="keyAdd('5')">5</button>
+  <button type="button" onclick="keyAdd('6')">6</button>
+
+  <button type="button" onclick="keyAdd('7')">7</button>
+  <button type="button" onclick="keyAdd('8')">8</button>
+  <button type="button" onclick="keyAdd('9')">9</button>
+
+  <button type="button" onclick="keyAdd('.')">.</button>
+  <button type="button" onclick="keyAdd('0')">0</button>
+  <button type="button" onclick="keyAdd('/')">/</button>
+
+  <button type="button" onclick="keyAdd('-')">−</button>
+  <button type="button" class="delete-key" onclick="keyBack()">⌫ ລຶບຄຳຕອບ</button>
+  <button type="button" class="submit-key" onclick="submitAnswer()">ສົ່ງຄຳຕອບ</button>
+</div>
+
 
    <div id="answerMessage" class="message" aria-live="polite"></div>
    <p class="hint"></p>
