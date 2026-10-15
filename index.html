@@ -514,17 +514,31 @@ $('targetLabel').textContent = Number(r.targetScore || 10);
     }
   }
 
-  // แสดงผู้ชนะ
+
+  // ແສດງຜູ້ຊະນະ ແລະ ຊື່ຜູ້ຫຼິ້ນ
   if (r.status === 'finished' && r.winner) {
     $('winnerOverlay').classList.remove('hidden');
 
     $('winnerTitle').textContent =
-      r.winner === 'draw' ? 'ສະເໝີກັນ!' : 'ທີມ ' + r.winner + ' ຊະນະ!';
+      r.winner === 'draw'
+        ? 'ສະເໝີກັນ!'
+        : 'ທີມ ' + r.winner + ' ຊະນະ!';
 
     $('winnerText').textContent =
-      'ຄະແນນສຸດທ້າຍ — ທີມ A ' + scoreA + ' : ' + scoreB + ' ທີມ B';
+      'ທີມ A ' + scoreA + ' : ' + scoreB + ' ທີມ B';
+
+    if (r.winner !== 'draw') {
+      const winnerNames = Object.values(players || {})
+        .filter(p => p.team === r.winner)
+        .map(p => p.name)
+        .filter(Boolean);
+
+      $('winnerText').textContent +=
+        '\nຜູ້ຊະນະ: ' +
+        (winnerNames.length ? winnerNames.join(', ') : 'ບໍ່ມີຂໍ້ມູນຊື່');
+    }
   }
-}
+
 
 
 function escHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
