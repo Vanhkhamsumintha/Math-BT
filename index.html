@@ -215,7 +215,15 @@ window.MathJax={
 
   <div id="playerAnswerArea" class="answers hidden">
    <label for="answerInput">ພິມຄຳຕອບຂອງທ່ານ</label>
-   <input id="answerInput" class="answerinput" autocomplete="off" inputmode="decimal" placeholder="ເຊັ່ນ 123 ຫຼື 8/4">
+  
+<input id="answerInput"
+       class="answerinput"
+       type="text"
+       autocomplete="off"
+       inputmode="none"
+       readonly
+       placeholder="ກົດປຸ່ມຕົວເລກດ້ານລຸ່ມ">
+
 
    <div class="keypad">
     <button onclick="keyAdd('7')">7</button><button onclick="keyAdd('8')">8</button><button onclick="keyAdd('9')">9</button>
@@ -919,36 +927,28 @@ $('answerInput').addEventListener('keydown', e => {
   }
 });
 
-// ผู้เล่นพิมพ์ตัวเลขจากแป้นพิมพ์ได้ทันที แม้ยังไม่ได้คลิกช่องคำตอบ
-document.addEventListener('keydown', e => {
-  if (role !== 'player' || $('playerAnswerArea').classList.contains('hidden')) return;
-  const input = $('answerInput');
-  if (input.disabled) return;
 
-  // เมื่อโฟกัสอยู่ในช่องคำตอบ ให้ปล่อยให้ช่องจัดการการพิมพ์เอง
-  if (document.activeElement === input) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      submitAnswer();
-    }
-    return;
-  }
+function keyAdd(k) {
+    const el = $('answerInput');
+    if (el.disabled) return;
 
-  if (/^[0-9]$/.test(e.key) || ['.', '/', '-', '+'].includes(e.key)) {
-    e.preventDefault();
-    input.value += e.key;
-    input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
-  } else if (e.key === 'Backspace') {
-    e.preventDefault();
-    input.value = input.value.slice(0, -1);
-    input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
-  } else if (e.key === 'Enter') {
-    e.preventDefault();
-    submitAnswer();
-  }
-});
+    el.value += k;
+}
+
+function keyBack() {
+    const el = $('answerInput');
+    if (el.disabled) return;
+
+    el.value = el.value.slice(0, -1);
+}
+
+function keyClear() {
+    const el = $('answerInput');
+    if (el.disabled) return;
+
+    el.value = '';
+}
+
 </script>
 </body>
 </html>
