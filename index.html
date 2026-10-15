@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แข่งขันพิมพ์ตอบคณิตศาสตร์</title>
+<style>
+:root{--bg:#f4f2ff;--card:#fff;--ink:#24213d;--muted:#6d6a83;--purple:#6d4aff;--pink:#ff6fae;--blue:#2878e8;--green:#138a55;--red:#d43d57}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#f4f2ff,#fff2f8);font-family:'Phetsarath OT',sans-serif;color:var(--ink);min-height:100vh}
+header{padding:18px 14px;text-align:center;background:#fffd;border-bottom:1px solid #e9e4ff;position:sticky;top:0;z-index:5}
+h1{font-size:clamp(1.3rem,4vw,2rem);margin:0}
+header p{margin:5px 0 0;color:var(--muted)}
+main{max-width:1000px;margin:20px auto;padding:0 14px 40px}
+.card{background:var(--card);border:1px solid #e9e5fa;border-radius:20px;padding:clamp(15px,3vw,25px);box-shadow:0 10px 28px #38257a12;margin-bottom:16px}
+h2{margin:0 0 14px;font-size:1.25rem}
+label{display:block;font-weight:700;margin:12px 0 6px}
+input,select{width:100%;padding:12px 13px;border:1px solid #d8d3eb;border-radius:12px;font-size:1rem;background:#fff;color:var(--ink);font-family:inherit}
+button{border:0;border-radius:12px;padding:12px 16px;font-size:1rem;font-weight:800;cursor:pointer;background:var(--purple);color:#fff;transition:.15s;font-family:inherit}
+button:hover{filter:brightness(.96)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.secondary{background:#ece8ff;color:#4a35ad}
+.pink{background:var(--pink)}
+.green{background:var(--green)}
+.danger{background:var(--red)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1;min-width:140px}
+.hidden{display:none!important}
+.hint{color:var(--muted);font-size:.92rem}
+.status{padding:10px 13px;background:#f2efff;border-radius:12px;margin:10px 0;color:#51438b;overflow-wrap:anywhere}
+.roomcode{font-size:2rem;font-weight:900;letter-spacing:.22em;color:var(--purple);text-align:center;padding:10px}
+.scores{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.score{border-radius:17px;padding:14px;text-align:center;color:#fff}
+.score.teamA{background:linear-gradient(135deg,#d62839,#ff6575)}
+.score.teamB{background:linear-gradient(135deg,#1756c4,#4d9bff)}
+.score strong{display:block;font-size:clamp(1.35rem,4vw,1.9rem)}
+.questionbox{text-align:center;padding:40px 15px;background:#faf9ff;border-radius:18px;border:1px solid #eee9ff}
+.qmeta{font-size:.9rem;color:var(--muted);margin-bottom:10px}
+.math {
+  height: 200px;
+  min-height: 200px;
+  overflow: visible;
+  padding: 24px 8px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 120px;
+}
+.answers{max-width:480px;margin:14px auto 0}
+.answerinput{font-size:1.3rem;text-align:center;font-weight:800}
+.keypad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.keypad button{background:#efecff;color:#3f328b;font-size:1.2rem;padding:13px 5px}
+.keypad .wide{grid-column:span 2}
+.keypad .back{background:#ffe6ed;color:#a52b4a}
+.message{text-align:center;font-weight:800;min-height:28px;margin-top:10px}
+.winner{position:fixed;inset:0;background:linear-gradient(135deg,#2b176b,#7b43e8,#ff72b3);z-index:20;display:flex;align-items:center;justify-content:center;padding:20px;color:#fff;text-align:center}
+.winner h2{font-size:clamp(2rem,8vw,4rem)}
+.winner p{font-size:clamp(1.2rem,4vw,1.7rem)}
+.winner .inner{max-width:650px}
+.small{font-size:.85rem}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.player{background:#f7f5ff;padding:10px;border-radius:10px;overflow-wrap:anywhere}
+@media(max-width:560px){
+ main{margin-top:12px}
+ .scores{gap:8px}
+ .score{padding:10px 5px}
+ .row>*{min-width:100%}
+ .players{grid-template-columns:1fr}
+ .roomcode{font-size:1.7rem}
+}
+.target-score-display {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.5;
+
+  transform: translateX(-51%);
+}
+
+.target-score-display #targetLabel {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--purple);
+}
+</style>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+window.MathJax={
+ tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},
+ options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<header>
+ <h1>🧠 ຄະນິດຄິດໄວ</h1>
+</header>
+
+<main>
+<section id="home" class="card">
+ <h2>ເລືອກບົດບາດ</h2>
+ <div class="row">
+  <button onclick="showRole('controller')">👑 ຜູ້ຄວບຄຸມລະບົບ</button>
+  <button class="pink" onclick="showRole('player')">🎮 ຜູ້ຫຼິ້ນ</button>
+ </div>
+</section>
+
+<section id="controllerSetup" class="card hidden">
+ <h2>ຕັ້ງຄ່າການແຂ່ງຂັນ</h2>
+ <label for="targetScore">ຈຳນວນຂໍ້</label>
+ <select id="targetScore">
+  <option value="5">5 ຂໍ້</option>
+  <option value="10" selected>10 ຂໍ້</option>
+  <option value="15">15 ຂໍ້</option>
+  <option value="20">20 ຂໍ້</option>
+  <option value="25">25 ຂໍ້</option>
+  <option value="30">30 ຂໍ້</option>
+ </select>
+
+ <div class="row" style="margin-top:14px">
+  <button onclick="createRoom()">ສ້າງຫ້ອງແຂ່ງຂັນ</button>
+  <button class="secondary" onclick="goHome()">ກັບຄືນ</button>
+ </div>
+ <div id="createStatus" class="status hidden"></div>
+
+ <div id="hostRoom" class="hidden">
+  <h2 style="text-align:center">👑 ໜ້າຈໍຜູ້ຄວບຄຸມ</h2>
+  <p class="hint" style="text-align:center">ລະຫັດຫ້ອງ</p>
+  <div id="roomCode" class="roomcode"></div>
+
+  <div class="scores">
+   <div class="score teamA">
+    <span>🔴 ທີມ A</span>
+    <strong id="lobbyScoreA">0</strong>
+    <span id="lobbyStatusA" class="small">ລໍຖ້າຜູ້ຫຼິ້ນ</span>
+   </div>
+   <div class="score teamB">
+    <span>🔵 ທີມ B</span>
+    <strong id="lobbyScoreB">0</strong>
+    <span id="lobbyStatusB" class="small">ລໍຖ້າຜູ້ຫຼິ້ນ</span>
+   </div>
+  </div>
+
+  <button id="startBtn" class="green" style="width:100%"
+          onclick="startGame()" disabled>
+   ເລີ່ມເກມ
+  </button>
+  <p id="hostStatus" class="message"></p>
+ </div>
+</section>
+
+<section id="playerSetup" class="card hidden">
+ <h2>ເຂົ້າຮ່ວມຫ້ອງແຂ່ງຂັນ</h2>
+ <label for="playerName">ຊື່ຜູ້ຫຼິ້ນ</label>
+ <input id="playerName" maxlength="30" placeholder="ປ້ອນຊື່ຂອງທ່ານ">
+
+ <label for="joinCode">ລະຫັດຫ້ອງ 4 ຕົວເລກ</label>
+ <input id="joinCode" inputmode="numeric" maxlength="4" placeholder="ເຊັ່ນ 1234">
+
+ <label for="teamChoice">ເລືອກທີມ</label>
+ <select id="teamChoice">
+  <option value="A">ທີມ A (ສີແດງ)</option>
+  <option value="B">ທີມ B (ສີຟ້າ)</option>
+ </select>
+
+ <button style="width:100%;margin-top:14px" onclick="joinRoom()">ເຂົ້າຮ່ວມ</button>
+ <button class="secondary" style="width:100%;margin-top:8px" onclick="goHome()">ກັບຄືນ</button>
+ <div id="joinStatus" class="status hidden"></div>
+</section>
+
+<section id="game" class="hidden">
+ <div class="card">
+  <div class="row" style="align-items:center; justify-content:center">
+   <div>
+    <b id="roleLabel">ໜ້າຈໍການແຂ່ງຂັນ</b>
+    <div id="roomLabel" class="hint"></div>
+   </div>
+<div class="target-score-display">
+  <span>ຄະແນນເປົ້າໝາຍ</span>
+  <div><b id="targetLabel">-</b></div>
+</div>
+   </div>
+  </div>
+ </div>
+
+ <div class="scores">
+  <div class="score teamA">
+   <span>🔴 ທີມ A</span>
+   <strong id="scoreA">0</strong>
+   <span id="teamAPlayers" class="small"></span>
+  </div>
+  <div class="score teamB">
+   <span>🔵 ທີມ B</span>
+   <strong id="scoreB">0</strong>
+   <span id="teamBPlayers" class="small"></span>
+  </div>
+ </div>
+
+ <div class="card">
+  <div class="questionbox" id="questionBox">
+   <div class="qmeta" id="qmeta"></div>
+   <div id="question" class="math">ພ້ອມແລ້ວບໍ?</div>
+  </div>
+
+  <div id="playerAnswerArea" class="answers hidden">
+   <label for="answerInput">ພິມຄຳຕອບຂອງທ່ານ</label>
+   <input id="answerInput" class="answerinput" autocomplete="off" inputmode="decimal" placeholder="ເຊັ່ນ 123 ຫຼື 8/4">
+
+   <div class="keypad">
+    <button onclick="keyAdd('7')">7</button><button onclick="keyAdd('8')">8</button><button onclick="keyAdd('9')">9</button>
+    <button onclick="keyAdd('4')">4</button><button onclick="keyAdd('5')">5</button><button onclick="keyAdd('6')">6</button>
+    <button onclick="keyAdd('1')">1</button><button onclick="keyAdd('2')">2</button><button onclick="keyAdd('3')">3</button>
+    <button onclick="keyAdd('0')">0</button><button onclick="keyAdd('.')">.</button><button onclick="keyAdd('/')">/</button>
+    <button class="wide" onclick="keyAdd('-')">− ເຄື່ອງໝາຍລົບ</button>
+    <button class="back" onclick="keyBack()">⌫</button>
+    <button class="wide" onclick="keyClear()">ລຶບຄຳຕອບ</button>
+    <button class="green" onclick="submitAnswer()">ສົ່ງຄຳຕອບ</button>
+   </div>
+
+   <div id="answerMessage" class="message" aria-live="polite"></div>
+   <p class="hint"></p>
+  </div>
+
+<div id="hostGameArea" class="hidden">
+  <div class="status hidden" id="hostGameStatus"></div>
+
+  <button
+    type="button"
+    class="pink"
+    id="skipQuestionBtn"
+    onclick="nextQuestion()"
+    style="width:100%;margin-top:10px">
+    ຂ້າມຄຳຖາມ
+  </button>
+</div>
+  <div id="spectatorMessage" class="message"></div>
+ </div>
+
+ <div id="hostPlayersCard" class="card hidden">
+  <h2>ຜູ້ຫຼິ້ນໃນຫ້ອງ</h2>
+  <div id="gamePlayers" class="players"></div>
+ </div>
+</section>
+</main>
+
+<div id="winnerOverlay" class="winner hidden">
+ <div class="inner">
+  <div style="font-size:4rem">🏆</div>
+  <h2 id="winnerTitle">ທີມຊະນະ!</h2>
+  <p id="winnerText"></p>
+  <button onclick="location.reload()" style="background:#fff;color:#5a35b5">ກັບໜ້າທຳອິດ</button>
+ </div>
+</div>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC8fmjv-_tZ7qVvM7ZB7Ya0cGKXlrnHfqI",
+  authDomain: "math-bt-85c67.firebaseapp.com",
+  databaseURL: "https://math-bt-85c67-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "math-bt-85c67",
+  storageBucket: "math-bt-85c67.firebasestorage.app",
+  messagingSenderId: "92982572861",
+  appId: "1:92982572861:web:153a90b38c7b61c78fb754",
+  measurementId: "G-DCMWYWVTRH"
+};
+let db=null, roomRef=null, roomCode='', role='', playerId='', myTeam='', myName='', currentRoom=null, roomListener=null, submitting=false;
+try { if(!firebase.apps.length) firebase.initializeApp(firebaseConfig); db=firebase.database(); } catch(e){ console.error(e); }
+const $=id=>document.getElementById(id);
+function showRole(r){$('home').classList.add('hidden');$('controllerSetup').classList.toggle('hidden',r!=='controller');$('playerSetup').classList.toggle('hidden',r!=='player');}
+function goHome(){['controllerSetup','playerSetup','game'].forEach(id=>$(id).classList.add('hidden'));$('home').classList.remove('hidden');}
+function setStatus(id,msg){$(id).textContent=msg;$(id).classList.remove('hidden');}
+function randCode(){return String(Math.floor(1000+Math.random()*9000));}
+function randomId(){return 'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);}
+
+
+async function createRoom() {
+  if (!db) {
+    setStatus('createStatus', 'เชื่อมต่อ Firebase ไม่สำเร็จ กรุณาตรวจสอบการตั้งค่า');
+    return;
+  }
+
+  const name = ''; // ไม่ต้องระบุชื่อผู้คุมระบบ
+  const target = Number($('targetScore').value);
+
+  setStatus('createStatus', 'ກຳລັງສ້າງຫ້ອງ...');
+
+  try {
+    let code = '';
+    let created = false;
+
+    for (let i = 0; i < 12; i++) {
+      code = randCode();
+
+      const ref = db.ref('mathRaceRooms/' + code);
+
+      const result = await ref.transaction(v => {
+        if (v !== null) return;
+
+        return {
+          status: 'lobby',
+          hostName: name,
+          targetScore: target,
+          scoreA: 0,
+          scoreB: 0,
+          questionIndex: 0,
+          question: null,
+          players: {},
+          winner: null,
+          createdAt: Date.now()
+        };
+      });
+
+      if (result.committed) {
+        created = true;
+        break;
+      }
+    }
+
+    if (!created) {
+      throw new Error('สร้างรหัสห้องไม่ได้ กรุณาลองใหม่');
+    }
+
+    role = 'controller';
+    roomCode = code;
+    myName = name;
+    roomRef = db.ref('mathRaceRooms/' + code);
+
+    $('hostRoom').classList.remove('hidden');
+    // ซ่อนแบบฟอร์มสร้างห้องหลังสร้างสำเร็จ เหลือเฉพาะรหัสห้องและหน้ารอผู้เล่น
+    $('controllerSetup').querySelectorAll(':scope > h2, :scope > label, :scope > input, :scope > select, :scope > .row, :scope > #createStatus')
+      .forEach(el => el.classList.add('hidden'));
+    $('roomCode').textContent = code;
+    $('startBtn').disabled = true;
+    $('hostStatus').textContent = 'ລໍຖ້າຜູ້ຫຼິ້ນ';
+
+    // คงหน้าแสดงรหัสห้องไว้ ไม่เปลี่ยนไปหน้าแข่งขันก่อนเริ่ม
+    $('home').classList.add('hidden');
+    $('playerSetup').classList.add('hidden');
+    $('game').classList.add('hidden');
+    $('controllerSetup').classList.remove('hidden');
+
+    listenRoom();
+
+  } catch (e) {
+    setStatus('createStatus', 'เกิดข้อผิดพลาด: ' + e.message);
+  }
+}
+
+
+async function joinRoom(){
+ if(!db){setStatus('joinStatus','เชื่อมต่อ Firebase ไม่สำเร็จ กรุณาตรวจสอบการตั้งค่า');return;}
+ const name=$('playerName').value.trim(),code=$('joinCode').value.trim(),team=$('teamChoice').value;
+ if(!name){setStatus('joinStatus','ກາລຸນາລົງຊື່ເຂົ້າໃຊ້');return;}if(!/^\d{4}$/.test(code)){setStatus('joinStatus','ລະຫັດຫ້ອງບໍ່ຖືກຕ້ອງ');return;}
+ const ref=db.ref('mathRaceRooms/'+code);
+ try{
+  const snap=await ref.get();if(!snap.exists()){setStatus('joinStatus','ລະຫັດບໍ່ຖືກຕ້ອງ');return;}
+  const data=snap.val();if(data.status!=='lobby'){setStatus('joinStatus','ເກມເລີ່ມໄປແລ້ວ ບໍ່ສາມາດເຂົ້າຫ້ອງນີ້ໄດ້');return;}
+  const teamPlayers=Object.values(data.players||{}).filter(p=>p.team===team);
+  if(teamPlayers.length>=1){setStatus('joinStatus','ທີມນີ້ມີຄົນເລືອກແລ້ວ ກາລຸນາເລືອກທີມອື່ນ');return;}
+  playerId=randomId();roomCode=code;roomRef=ref;role='player';myTeam=team;myName=name;
+  const res=await ref.child('players/'+playerId).set({name,team,joinedAt:Date.now()});
+  $('playerSetup').classList.add('hidden');enterGameUI();listenRoom();
+ }catch(e){setStatus('joinStatus','ເຂົ້າຮ່ວມຫ້ອງບໍ່ສຳເລັດ: '+e.message);}
+}
+
+
+function enterGameUI() {
+  $('home').classList.add('hidden');
+  $('controllerSetup').classList.add('hidden');
+  $('playerSetup').classList.add('hidden');
+  $('game').classList.remove('hidden');
+
+  $('roleLabel').textContent = '';
+  $('roomLabel').textContent = '';
+
+  $('playerAnswerArea').classList.toggle(
+    'hidden',
+    role !== 'player'
+  );
+  $('questionBox').classList.toggle('hidden', role === 'player');
+
+  $('hostGameArea').classList.toggle('hidden', role !== 'controller');
+  $('hostPlayersCard').classList.add('hidden');
+}
+
+
+function listenRoom(){
+ if(roomListener)roomListener.off();
+ roomListener=roomRef;roomListener.on('value',snap=>{if(!snap.exists())return;currentRoom=snap.val();renderRoom();});
+}
+
+
+function renderRoom() {
+  const r = currentRoom;
+  if (!r) return;
+
+  const scoreA = Number(r.scoreA || 0);
+  const scoreB = Number(r.scoreB || 0);
+// ສະແດງຄະແນນເປົ້າໝາຍຕາມທີ່ຜູ້ຄວບຄຸມເລືອກ
+$('targetLabel').textContent = Number(r.targetScore || 10);
+  const players = Object.values(r.players || {});
+  const a = players.filter(p => p.team === 'A');
+  const b = players.filter(p => p.team === 'B');
+
+  // อัปเดตคะแนนในหน้าห้องรอ
+  if ($('lobbyScoreA')) $('lobbyScoreA').textContent = scoreA;
+  if ($('lobbyScoreB')) $('lobbyScoreB').textContent = scoreB;
+
+  if ($('lobbyStatusA')) {
+    $('lobbyStatusA').textContent = a.length ? a[0].name : 'ລໍຖ້າຜູ້ຫຼິ້ນ';
+  }
+
+  if ($('lobbyStatusB')) {
+    $('lobbyStatusB').textContent = b.length ? b[0].name : 'ລໍຖ້າຜູ້ຫຼິ້ນ';
+  }
+
+  // อัปเดตคะแนนในหน้าแข่งขัน
+  $('scoreA').textContent = scoreA;
+  $('scoreB').textContent = scoreB;
+
+  const teamA = $('teamAPlayers');
+  const teamB = $('teamBPlayers');
+
+  if (teamA) teamA.textContent = '';
+  if (teamB) teamB.textContent = '';
+
+  // เริ่มได้เมื่อมีผู้เล่นทีมละหนึ่งคน
+  if (role === 'controller' && $('startBtn')) {
+    $('startBtn').disabled = !(
+      a.length === 1 &&
+      b.length === 1 &&
+      r.status === 'lobby'
+    );
+  }
+
+  // ยังรอเริ่มเกม
+  if (r.status === 'lobby') {
+    if (role === 'controller') {
+      $('hostStatus').textContent =
+        a.length === 1 && b.length === 1
+          ? ''
+          : 'ລໍຖ້າຜູ້ຫຼິ້ນ';
+    }
+
+    if (role === 'player') {
+      $('qmeta').textContent = 'ລໍຖ້າຜູ້ຄຸມລະບົບກົດເລີ່ມເກມ';
+      $('question').textContent = 'ກຽມພ້ອມ';
+      $('spectatorMessage').textContent = 'ລໍຖ້າເລີ່ມເກມແຂ່ງຂັນ';
+
+      $('answerInput').disabled = true;
+      $('playerAnswerArea').querySelectorAll('button')
+        .forEach(btn => btn.disabled = true);
+    }
+
+    return;
+  }
+
+  // กำลังแข่งขัน
+  if (r.status === 'playing' && r.question) {
+    if (role === 'controller') {
+      $('question').innerHTML = '\\(' + r.question.latex + '\\)';
+    }
+    $('spectatorMessage').textContent = role === 'controller' ? (r.lastMessage || '') : '';
+
+    if (role === 'player') {
+      const locked = r.question.answeredBy != null;
+
+      $('answerInput').disabled = locked;
+
+      $('playerAnswerArea').querySelectorAll('button')
+        .forEach(btn => btn.disabled = locked);
+
+      $('answerMessage').textContent = locked
+        ? 'ມີທີມຕອບຖືກແລ້ວ ກໍາລັງໄປຂໍ້ຖັດໄປ...'
+        : '';
+
+      if (!locked && document.activeElement !== $('answerInput')) $('answerInput').value = '';
+    }
+
+    if (window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise([$ ('question')])
+        .catch(() => {});
+    }
+  }
+
+  // แสดงผู้ชนะ
+  if (r.status === 'finished' && r.winner) {
+    $('winnerOverlay').classList.remove('hidden');
+
+    $('winnerTitle').textContent =
+      r.winner === 'draw' ? 'ສະເໝີກັນ!' : 'ທີມ ' + r.winner + ' ຊະນະ!';
+
+    $('winnerText').textContent =
+      'ຄະແນນສຸດທ້າຍ — ທີມ A ' + scoreA + ' : ' + scoreB + ' ທີມ B';
+  }
+}
+
+
+function escHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){let t=b;b=a%b;a=t;}return a||1;}
+function makeQuestions(){
+ const qs=[];
+ const add=(type,latex,answer,display)=>qs.push({
+   type,
+   latex,
+   answer:String(answer),
+   display:String(display ?? answer)
+ });
+
+ // ບວກຈຳນວນເຕັມ 8 ຂໍ້
+ for(let i=0;i<8;i++){
+   let a=120+Math.floor(Math.random()*780);
+   let b=110+Math.floor(Math.random()*650);
+   add('',`${a}+${b} = ?`,a+b,a+b);
+ }
+
+ // ລົບຈຳນວນເຕັມ 8 ຂໍ້
+ for(let i=0;i<8;i++){
+   let a=350+Math.floor(Math.random()*650);
+   let b=80+Math.floor(Math.random()*Math.min(500,a-50));
+   add('',`${a}-${b} = ?`,a-b,a-b);
+ }
+
+ // ຄູນຈຳນວນເຕັມ 8 ຂໍ້
+ for(let i=0;i<8;i++){
+   let a=12+Math.floor(Math.random()*39);
+   let b=12+Math.floor(Math.random()*29);
+   add('',`${a}\\times ${b} = ?`,a*b,a*b);
+ }
+
+ // ບວກທົດສະນິຍົມ 8 ຂໍ້
+ for(let i=0;i<8;i++){
+   let a=(100+Math.floor(Math.random()*800))/100;
+   let b=(10+Math.floor(Math.random()*900))/100;
+   a=Math.round(a*10)/10;
+   b=Math.round(b*10)/10;
+   let ans=+(a+b).toFixed(2);
+   add('',`${a.toFixed(1)}+${b.toFixed(1)} = ?`,ans,ans);
+ }
+
+ // ລົບທົດສະນິຍົມ 8 ຂໍ້
+ for(let i=0;i<8;i++){
+   let a=+((20+Math.floor(Math.random()*700))/10).toFixed(1);
+   let b=+((10+Math.floor(Math.random()*Math.max(1,Math.floor(a*10-1))))/10).toFixed(1);
+   let ans=+(a-b).toFixed(2);
+   add('',`${a.toFixed(1)}-${b.toFixed(1)} = ?`,ans,ans);
+ }
+
+ // ຄູນທົດສະນິຍົມ 8 ຂໍ້
+ for(let i=0;i<8;i++){
+   let a=+((12+Math.floor(Math.random()*70))/10).toFixed(1);
+   let b=+((12+Math.floor(Math.random()*40))/10).toFixed(1);
+   let ans=+(a*b).toFixed(2);
+   add('',`${a.toFixed(1)}\\times ${b.toFixed(1)} = ?`,ans,ans);
+ }
+
+ // ຫານ: ຕັດທົດສະນິຍົມໃຫ້ເຫຼືອ 2 ຕຳແໜ່ງ ໂດຍບໍ່ປັດເສດ
+ for(let i=0;i<10;i++){
+   let divisor=+((10+Math.floor(Math.random()*49))/10).toFixed(1);
+   let dividend=+((10+Math.floor(Math.random()*900))/10).toFixed(1);
+   let exact=dividend/divisor;
+   let ans=Math.trunc(exact*100)/100;
+
+   add(
+     '',
+     `${fmt(dividend)}\\div ${fmt(divisor)} = ?`,
+     ans,
+     ans
+   );
+ }
+
+ // ບວກເສດສ່ວນ ຕົວສ່ວນຄືກັນ 10 ຂໍ້
+ for(let i=0;i<10;i++){
+   let d=2+Math.floor(Math.random()*9);
+   let n1=1+Math.floor(Math.random()*(d-1));
+   let n2=1+Math.floor(Math.random()*(d-1));
+   let n=n1+n2;
+   let g=gcd(n,d);
+   let reducedN=n/g;
+   let reducedD=d/g;
+   let ans=reducedD===1?String(reducedN):reducedN+'/'+reducedD;
+
+   add(
+     '',
+     `\\frac{${n1}}{${d}}+\\frac{${n2}}{${d}} = ?`,
+     ans,
+     ans
+   );
+ }
+
+ // ບວກເສດສ່ວນ ຕົວສ່ວນຕ່າງກັນ 10 ຂໍ້
+ for(let i=0;i<10;i++){
+   let d1=2+Math.floor(Math.random()*8);
+   let d2=2+Math.floor(Math.random()*8);
+   let n1=1+Math.floor(Math.random()*(d1-1));
+   let n2=1+Math.floor(Math.random()*(d2-1));
+   let n=n1*d2+n2*d1;
+   let d=d1*d2;
+   let g=gcd(n,d);
+   n/=g;
+   d/=g;
+   let ans=d===1?String(n):n+'/'+d;
+
+   add(
+     '',
+     `\\frac{${n1}}{${d1}}+\\frac{${n2}}{${d2}} = ?`,
+     ans,
+     ans
+   );
+ }
+
+ // ຄູນເສດສ່ວນ 10 ຂໍ້
+ for(let i=0;i<10;i++){
+   let a=1+Math.floor(Math.random()*9);
+   let b=a+1+Math.floor(Math.random()*9);
+   let c=1+Math.floor(Math.random()*9);
+   let d=c+1+Math.floor(Math.random()*9);
+
+   let n=a*c;
+   let den=b*d;
+   let g=gcd(n,den);
+   n/=g;
+   den/=g;
+
+   let ans=den===1?String(n):n+'/'+den;
+
+   add(
+     '',
+     `\\frac{${a}}{${b}}\\times\\frac{${c}}{${d}} = ?`,
+     ans,
+     ans
+   );
+ }
+
+ // ຫານເສດສ່ວນ 10 ຂໍ້
+ for(let i=0;i<10;i++){
+   let a=1+Math.floor(Math.random()*9);
+   let b=a+1+Math.floor(Math.random()*9);
+   let c=1+Math.floor(Math.random()*9);
+   let d=c+1+Math.floor(Math.random()*9);
+
+   // a/b ÷ c/d = (a*d)/(b*c)
+   let n=a*d;
+   let den=b*c;
+   let g=gcd(n,den);
+   n/=g;
+   den/=g;
+
+   let ans=den===1?String(n):n+'/'+den;
+
+   add(
+     '',
+     `\\frac{${a}}{${b}}\\div\\frac{${c}}{${d}} = ?`,
+     ans,
+     ans
+   );
+ }
+ // ໂຈດຄິດໄລ່ເປີເຊັນ (%) 10 ຂໍ້
+ for(let i=0;i<10;i++){
+   let percent = 10 * (1 + Math.floor(Math.random()*9));
+   let number = 10 * (1 + Math.floor(Math.random()*99));
+   let ans = number * percent / 100;
+
+   add(
+     '',
+     `${percent}\\%\\text{ of }${number} = ?`,
+     ans,
+     ans
+   );
+ }
+ // ປ່ຽນການຫານເປັນເສດສ່ວນ 10 ຂໍ້
+ for(let i=0;i<10;i++){
+   let a=2+Math.floor(Math.random()*99);
+   let b=2+Math.floor(Math.random()*49);
+
+   add(
+     '',
+     `${a}\\div ${b}=\\frac{?}{?}`,
+     `${a}/${b}`,
+     `${a}/${b}`
+   );
+ }
+
+ // ປ່ຽນເສດສ່ວນເປັນການຫານ 10 ຂໍ້
+ for(let i=0;i<10;i++){
+   let a=1+Math.floor(Math.random()*99);
+   let b=2+Math.floor(Math.random()*49);
+
+   add(
+     '',
+     `\\frac{${a}}{${b}} = ? \\div ?`,
+     `${a}/${b}`,
+     `${a}/${b}`
+   );
+ }
+
+
+ // ປ່ຽນທົດສະນິຍົມເປັນເສດສ່ວນ 10 ຂໍ້
+ for(let i=0;i<10;i++){
+   let digits = Math.floor(Math.random()*4); // 0-3 ຕຳແໜ່ງ
+   let denominator = Math.pow(10, digits);
+
+   let numerator;
+   if(digits === 0){
+     numerator = 1 + Math.floor(Math.random()*99);
+   }else{
+     numerator = 1 + Math.floor(Math.random()*(9999));
+   }
+
+   let decimal = (numerator / denominator).toFixed(digits);
+   let ans = `${Math.round(Number(decimal)*denominator)}/${denominator}`;
+
+   add(
+     '',
+     `${decimal}=\\frac{?}{?}`,
+     ans,
+     ans
+   );
+ }
+
+ // ສຸ່ມລຳດັບຄຳຖາມ ແລ້ວສົ່ງຄືນ
+ return shuffle(qs);
+}
+
+function fmt(n){return String(+Number(n).toFixed(2));}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+
+async function startGame() {
+  if (role !== 'controller' || !currentRoom) return;
+
+  const players = Object.values(currentRoom.players || {});
+
+  if (
+    players.length !== 2 ||
+    !players.some(p => p.team === 'A') ||
+    !players.some(p => p.team === 'B')
+  ) {
+    $('hostStatus').textContent = 'ต้องมีผู้เล่นทีม A และทีม B ทีมละ 1 คน';
+    return;
+  }
+
+  const qs = makeQuestions();
+
+  const total = Math.max(1, Number(currentRoom.targetScore) || 10);
+
+  await roomRef.update({
+    status: 'playing',
+    scoreA: 0,
+    scoreB: 0,
+    questionIndex: 0,
+    question: qs[0],
+    questionBank: qs,
+    questionCount: qs.length,
+    targetScore: total,
+    lastMessage: '',
+    winner: null
+  });
+
+  // เปลี่ยนผู้คุมระบบไปหน้าแข่งขันหลังเริ่มเกม
+  enterGameUI();
+
+  setTimeout(() => {
+    $('question').scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  }, 150);
+}
+
+
+function normalizeAnswer(s){return String(s||'').trim().replace(/\s+/g,'').replace(/,/g,'').replace(/−/g,'-');}
+function answerValue(s){
+ s=normalizeAnswer(s);if(!s)return NaN;
+ if(/^[-+]?\d+\/[-+]?\d+$/.test(s)){const [a,b]=s.split('/').map(Number);if(b===0)return NaN;return a/b;}
+ if(/^[-+]?(?:\d+\.?\d*|\.\d+)$/.test(s))return Number(s);
+ return NaN;
+}
+
+
+function isCorrect(input, expected) {
+    const got = answerValue(input);
+    const want = answerValue(expected);
+
+    if (!Number.isFinite(got) || !Number.isFinite(want)) {
+        return false;
+    }
+
+    const q = currentRoom && currentRoom.question;
+
+    const isDivision = q && (
+        String(q.type || '').includes('ຫານ') ||
+        String(q.type || '').includes('หาร') ||
+        String(q.latex || '').includes('\\div')
+    );
+
+    const isFractionOperation = q &&
+        String(q.type || '').includes('ເສດສ່ວນ');
+
+    // ການຫານທົ່ວໄປ: ຕ້ອງຕອບຄ່າທີ່ກົງກັນ
+    if (isDivision && !isFractionOperation) {
+        return got === want;
+    }
+
+    // ໂຈດປະເພດອື່ນ ແລະ ເສດສ່ວນ:
+    // ຍອມຮັບຄຳຕອບທີ່ມີຄ່າເທົ່າກັນ
+    return Math.abs(got - want) < 0.0000001;
+}
+
+
+async function submitAnswer(){
+ if(role!=='player'||!currentRoom||currentRoom.status!=='playing'||!currentRoom.question||submitting)return;
+ const input=$('answerInput').value, q=currentRoom.question;
+ if(!input.trim()){$('answerMessage').textContent='ກາລຸນາພິມຄຳຕອບຂອງທ່ານກ່ອນ';return;}
+ if(!isCorrect(input,q.answer)){$('answerMessage').textContent='ຍັງບໍ່ຖືກ ລອງຕອບໃໝ່ອີກຄັ້ງ';return;}
+ submitting=true;$('answerMessage').textContent='ຖືກຕ້ອງ! ກໍາລັງບັນທຶກຄະແນນ...';
+ try{
+  await roomRef.transaction(r=>{
+   if(!r||r.status!=='playing'||!r.question||r.question.answeredBy!=null)return r;
+   // Verify the answer again against the active question before awarding points.
+const val = answerValue(input);
+const expected = answerValue(r.question.answer);
+
+if (!Number.isFinite(val) || !Number.isFinite(expected)) {
+    return r;
+}
+
+
+
+const isDivision =
+    String(r.question.type || '').includes('ຫານ') ||
+    String(r.question.type || '').includes('หาร') ||
+    String(r.question.latex || '').includes('\\div');
+
+const isFractionOperation =
+    String(r.question.type || '').includes('ເສດສ່ວນ');
+
+if (isDivision && !isFractionOperation) {
+    if (val !== expected) {
+        return r;
+    }
+} else {
+    if (Math.abs(val - expected) >= 0.0000001) {
+        return r;
+    }
+}
+
+   const scoreKey=myTeam==='A'?'scoreA':'scoreB';r[scoreKey]=(r[scoreKey]||0)+1;
+   r.question.answeredBy=myTeam;r.lastMessage='ທີມ '+myTeam+' ຕອບຖືກ ໄດ້ 1 ຄະແນນ';
+   if(r[scoreKey]>=r.targetScore){r.status='finished';r.winner=myTeam;return r;}
+   const nextIndex=(r.questionIndex||0)+1,bank=r.questionBank||[];
+   if(nextIndex>=bank.length){r.status='finished';r.winner=(r.scoreA||0)===(r.scoreB||0)?'draw':((r.scoreA||0)>(r.scoreB||0)?'A':'B');return r;}
+   r.questionIndex=nextIndex;r.question=bank[nextIndex];return r;
+  });
+  $('answerInput').value='';$('answerMessage').textContent='ສົ່ງຄໍາຕອບແລ້ວ';
+ }catch(e){$('answerMessage').textContent='ສົ່ງຄໍາຕອບບໍ່ສໍາເລັດ ກາລຸນາລອງໃໝ່';}
+ finally{submitting=false;}
+}
+
+async function nextQuestion() {
+  if (
+    role !== 'controller' ||
+    !currentRoom ||
+    currentRoom.status !== 'playing'
+  ) {
+    return;
+  }
+
+  try {
+    await roomRef.transaction(r => {
+      if (!r || r.status !== 'playing') return r;
+
+      const bank = r.questionBank || [];
+      const idx = (Number(r.questionIndex) || 0) + 1;
+
+      // ຖ້າບໍ່ມີຄຳຖາມຕໍ່ໄປ ໃຫ້ຈົບເກມ
+      if (idx >= bank.length) {
+        r.status = 'finished';
+        r.winner =
+          (r.scoreA || 0) === (r.scoreB || 0)
+            ? 'draw'
+            : (r.scoreA || 0) > (r.scoreB || 0)
+              ? 'A'
+              : 'B';
+
+        return r;
+      }
+
+      // ຂ້າມໄປຄຳຖາມຖັດໄປທັນທີ
+      r.questionIndex = idx;
+      r.question = bank[idx];
+      r.lastMessage = 'ຜູ້ຄຸມລະບົບຂ້າມໄປຂໍ້ຕໍ່ໄປ';
+
+      return r;
+    });
+  } catch (error) {
+    console.error('Skip question error:', error);
+    alert('ຂ້າມຄຳຖາມບໍ່ສຳເລັດ');
+  }
+}
+
+function keyAdd(k){const el=$('answerInput');if(el.disabled)return;el.value+=k;el.focus();}
+function keyBack(){const el=$('answerInput');if(el.disabled)return;el.value=el.value.slice(0,-1);el.focus();}
+function keyClear(){const el=$('answerInput');if(el.disabled)return;el.value='';el.focus();}
+$('answerInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    submitAnswer();
+  }
+});
+
+// ผู้เล่นพิมพ์ตัวเลขจากแป้นพิมพ์ได้ทันที แม้ยังไม่ได้คลิกช่องคำตอบ
+document.addEventListener('keydown', e => {
+  if (role !== 'player' || $('playerAnswerArea').classList.contains('hidden')) return;
+  const input = $('answerInput');
+  if (input.disabled) return;
+
+  // เมื่อโฟกัสอยู่ในช่องคำตอบ ให้ปล่อยให้ช่องจัดการการพิมพ์เอง
+  if (document.activeElement === input) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitAnswer();
+    }
+    return;
+  }
+
+  if (/^[0-9]$/.test(e.key) || ['.', '/', '-', '+'].includes(e.key)) {
+    e.preventDefault();
+    input.value += e.key;
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  } else if (e.key === 'Backspace') {
+    e.preventDefault();
+    input.value = input.value.slice(0, -1);
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    submitAnswer();
+  }
+});
+</script>
+</body>
+</html>
